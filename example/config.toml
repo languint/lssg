@@ -1,0 +1,5 @@
+title = "lssg example"
+description = "An example configuration file for lssg"
+
+[content]
+latex_enabled = true
