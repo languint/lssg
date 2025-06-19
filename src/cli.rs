@@ -25,6 +25,7 @@ pub fn get_config_file_path() -> std::path::PathBuf {
 pub struct Config {
     pub title: String,
     pub description: String,
+    pub theme: String,
     pub content: Content,
 }
 

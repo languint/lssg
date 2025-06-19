@@ -39,6 +39,7 @@ pub enum MarkdownNodes {
     List(MarkdownList),
     Link(MarkdownLink),
     CodeBlock(MarkdownCodeBlock),
+    HorizontalRule,
 }
 
 #[derive(Logos)]
@@ -184,7 +185,10 @@ impl MarkdownParser {
 
         while let Some(line) = lines.next() {
             let trimmed = line.trim_start();
-            if trimmed.starts_with("###") {
+
+            if trimmed.starts_with("---") {
+                nodes.push(MarkdownNodes::HorizontalRule)
+            } else if trimmed.starts_with("###") {
                 nodes.push(MarkdownNodes::Heading(MarkdownHeading {
                     level: 3,
                     content: trimmed[3..].trim().to_string(),

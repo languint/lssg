@@ -1,11 +1,11 @@
 use crate::parser::{self, MarkdownNodes, MarkdownParagraph, MarkdownSpan, MarkdownVariant};
 
-pub struct Translator {
-    nodes: Vec<MarkdownNodes>,
+pub struct Translator<'a> {
+    nodes: &'a Vec<MarkdownNodes>,
 }
 
-impl Translator {
-    pub fn new(nodes: Vec<MarkdownNodes>) -> Self {
+impl<'a> Translator<'a> {
+    pub fn new(nodes: &'a Vec<MarkdownNodes>) -> Self {
         Translator { nodes }
     }
 
@@ -26,20 +26,30 @@ impl Translator {
         html
     }
 
-    pub fn translate(&self) -> String {
+    pub fn translate(&self, class: &str) -> String {
         let mut output = String::new();
-        for node in &self.nodes {
+        for node in self.nodes {
             match node {
                 MarkdownNodes::Paragraph(p) => {
-                    output.push_str(&format!("<p>{}</p>", Self::format_paragraph(p)));
+                    output.push_str(&format!(
+                        "<p class=\"{}\">{}</p>",
+                        class,
+                        Self::format_paragraph(p)
+                    ));
                 }
                 MarkdownNodes::Heading(h) => {
-                    output.push_str(&format!("<h{0}>{1}</h{0}>", h.level, h.content));
+                    output.push_str(&format!(
+                        "<h{} class=\"{}\">{}</h{}>",
+                        h.level, class, h.content, h.level
+                    ));
                 }
                 MarkdownNodes::Link(l) => {
                     let node = match l.is_image {
-                        true => format!("<img src=\"{}\" alt=\"{}\" />", l.url, l.alt),
-                        false => format!("<a href=\"{}\">{}</a>", l.url, l.alt),
+                        true => format!(
+                            "<img src=\"{}\" alt=\"{}\" class=\"{}\" />",
+                            l.url, l.alt, class
+                        ),
+                        false => format!("<a href=\"{}\" class=\"{}\">{}</a>", l.url, class, l.alt),
                     };
                     output.push_str(&node);
                 }
@@ -52,12 +62,29 @@ impl Translator {
                     let items = l
                         .items
                         .iter()
-                        .map(|i| format!("<li>{}</li>", i))
+                        .map(|i| format!("<li class=\"{}\">{}</li>", class, i))
                         .collect::<String>();
 
-                    let out = format!("<{}>{}</{}>", node, items.as_str(), node);
+                    let out = format!(
+                        "<{} class=\"{}\">{}</{}>",
+                        node,
+                        class,
+                        items.as_str(),
+                        node
+                    );
 
                     output.push_str(&out);
+                }
+                MarkdownNodes::CodeBlock(c) => {
+                    let node = format!(
+                        "<pre><code class=\"language-{} {}\">{}</code></pre>",
+                        c.language, class, c.content
+                    );
+                    output.push_str(&node);
+                }
+                MarkdownNodes::HorizontalRule => {
+                    let node = format!("<hr class=\"{}\" />", class);
+                    output.push_str(&node);
                 }
                 _ => {}
             }

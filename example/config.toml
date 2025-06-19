@@ -1,5 +1,6 @@
 title = "lssg example"
 description = "An example configuration file for lssg"
+theme = "frappe"
 
 [content]
 latex_enabled = true
